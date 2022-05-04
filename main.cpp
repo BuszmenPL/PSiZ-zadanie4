@@ -3,9 +3,8 @@
 
 using namespace std;
 
-uint compair(std::istream& f1, std::istream& f2) {
-
-}
+uint compair(std::istream&, std::istream&);
+uint count(char, char);
 
 int main(int argc, const char* argv[])
 {
@@ -48,7 +47,7 @@ int main(int argc, const char* argv[])
 
 		bad = compair(file1, file2);
 
-		cout << "Size file: " << size << endl;
+		cout << "Size file: " << size << ", Bad: " << bad << endl;
 
 		file2.close();
 		file1.close();
@@ -58,4 +57,33 @@ int main(int argc, const char* argv[])
 	}
 	
 	return 0;
+}
+
+uint compair(std::istream& src, std::istream& dst) {
+	char s, d;
+	uint n{};
+
+	while(!(src.eof() && dst.eof())) {
+		src.get(s);
+		dst.get(d);
+
+		if(s != d)
+			n += count(s, d);
+	}
+
+	return n;
+}
+
+uint count(char s, char d) {
+	uint n{};
+
+	s = s ^ d;
+
+	while(s) {
+		if(s & 1)
+			++n;
+		s >> 1;
+	}
+
+	return n;
 }
