@@ -53,7 +53,7 @@ int main(int argc, const char* argv[])
 		file1.close();
 	}
 	catch(ifstream::failure error) {
-		cerr << "Błąd otwarcia pliku!" << endl;
+		cerr << "Błąd otwarcia pliku! " << error.what() << endl;
 	}
 	
 	return 0;
@@ -63,12 +63,14 @@ uint compair(std::istream& src, std::istream& dst) {
 	char s, d;
 	uint n{};
 
-	while(!(src.eof() && dst.eof())) {
-		src.get(s);
-		dst.get(d);
-
-		if(s != d)
-			n += count(s, d);
+	try {
+		while(src.get(s) && dst.get(d))
+			if(s != d)
+				n += count(s, d);
+	}
+	catch(istream::failure&) { // Ustawienie eof może powodować błąd!
+		if(!(src.eof() || dst.eof()))
+			throw;
 	}
 
 	return n;
