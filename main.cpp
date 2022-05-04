@@ -4,7 +4,7 @@
 using namespace std;
 
 uint compair(std::istream&, std::istream&);
-uint count(char, char);
+uint count(unsigned char, unsigned char);
 
 int main(int argc, const char* argv[])
 {
@@ -76,7 +76,7 @@ uint compair(std::istream& src, std::istream& dst) {
 	return n;
 }
 
-uint count(char s, char d) {
+uint count(unsigned char s, unsigned char d) {
 	uint n{};
 
 	s = s ^ d;
@@ -84,7 +84,7 @@ uint count(char s, char d) {
 	while(s) {
 		if(s & 1)
 			++n;
-		s >> 1;
+		s >>= 1;
 	}
 
 	return n;
