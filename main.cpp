@@ -1,13 +1,9 @@
 #include <iostream>
 #include <fstream>
-#include <chrono>
+#include "ber.h"
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 using namespace std;
 using namespace chrono;
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-uint compair(std::istream&, std::istream&);
-uint count(unsigned char, unsigned char);
-void save(uint, uint, std::chrono::milliseconds);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int main(int argc, const char* argv[])
 {
@@ -27,6 +23,7 @@ int main(int argc, const char* argv[])
 	ifstream file1;
 	ifstream file2;
 
+	// w razie błędu rzuć wyjątek
 	file1.exceptions(ifstream::failbit | ifstream::badbit);
 	file2.exceptions(ifstream::failbit | ifstream::badbit);
 
@@ -34,84 +31,22 @@ int main(int argc, const char* argv[])
 		file1.open(fn1, ios::binary);
 		file2.open(fn2, ios::binary);
 
-		file1.seekg(0, ifstream::end);
-		file2.seekg(0, ifstream::end);
+		// oblicza Bit Error Rate
+		BER ber(file1, file2);
+		// Nie zamyka pliku, destruktor to zrobi
 
-		if(file1.tellg() != file2.tellg()) { // porówanie długości plików
-			cerr << "Różna długość strumieni!" << endl;
-			return -3;
-		}
+		cout << "Ilośc porównanych bitów: " << ber.size() << endl;
+		cout << "Ilość różnych bitów: " << ber.bad() << endl;
+		cout << "BER: " << ber.bad() << '/' << ber.size() << endl;
+		cout << "Czas obliczeń: " << duration_cast<milliseconds>(ber.time()).count() << "ms" << endl;
 
-		uint size = file1.tellg() * 8; // na każdy bajt przypada 8 bitów
-		uint bad;
-
-		file1.seekg(0, ifstream::beg);
-		file2.seekg(0, ifstream::beg);
-
-		steady_clock::time_point start = steady_clock::now();
-
-		bad = compair(file1, file2);
-
-		steady_clock::time_point stop = steady_clock::now();
-
-		file2.close();
-		file1.close();
-
-		save(size, bad, duration_cast<milliseconds>(stop - start));
+		// zapis informacji w pliku log.txt
+		if(!ber.save("log.txt"))
+			cerr << "Błąd zapisu!" << endl;
 	}
 	catch(ifstream::failure error) {
 		cerr << "Błąd odczytu pliku!" << endl;
 	}
 	
 	return 0;
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-uint compair(std::istream& src, std::istream& dst) {
-	char s, d;
-	uint n{};
-
-	try {
-		while(src.get(s) && dst.get(d))
-			if(s != d)
-				n += count(s, d);
-	}
-	catch(istream::failure&) { // Ustawienie eof może powodować błąd!
-		if(!(src.eof() || dst.eof()))
-			throw;
-	}
-
-	return n;
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-uint count(unsigned char s, unsigned char d) {
-	uint n{};
-
-	s = s ^ d;
-
-	while(s) {
-		if(s & 1)
-			++n;
-		s >>= 1;
-	}
-
-	return n;
-}
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void save(uint all, uint bad, std::chrono::milliseconds time) {
-	cout << "Ilośc porównanych bitów: " << all << endl << "Ilość różnych bitów: " << bad << endl;
-	cout << "BER: " << bad << '/' << all << endl << "Czas obliczeń: " << time.count() << "ms" << endl;
-
-	ofstream log;
-	log.exceptions(ofstream::failbit | ofstream::badbit);
-
-	try {
-		log.open("log.txt", ios::app);
-
-		log << time.count() << ' ' << all << ' ' << bad << ' ' << bad << '/' << all << endl;
-
-		log.close();
-	}
-	catch(ofstream::failure error) {
-		cerr << "Błąd zapisu do pliku log.txt" << endl;
-	}
 }
