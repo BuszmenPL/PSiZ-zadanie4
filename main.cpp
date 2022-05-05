@@ -1,10 +1,13 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
+//#include <.h>
 
 using namespace std;
 
 uint compair(std::istream&, std::istream&);
 uint count(unsigned char, unsigned char);
+void save(uint, uint, chrono::milliseconds);
 
 int main(int argc, const char* argv[])
 {
@@ -31,29 +34,33 @@ int main(int argc, const char* argv[])
 		file1.open(fn1, ios::binary);
 		file2.open(fn2, ios::binary);
 
-		file1.seekg(0, file1.end);
-		file2.seekg(0, file2.end);
+		file1.seekg(0, ifstream::end);
+		file2.seekg(0, ifstream::end);
 
 		if(file1.tellg() != file2.tellg()) { // porówanie długości plików
-			cerr << "Rózna długość strumieni!" << endl;
+			cerr << "Różna długość strumieni!" << endl;
 			return -3;
 		}
 
 		uint size = file1.tellg() * 8; // na każdy bajt przypada 8 bitów
 		uint bad;
 
-		file1.seekg(0, file1.beg);
-		file2.seekg(0, file2.beg);
+		file1.seekg(0, ifstream::beg);
+		file2.seekg(0, ifstream::beg);
+
+		chrono::steady_clock::time_point start = chrono::steady_clock::now();
 
 		bad = compair(file1, file2);
 
-		cout << "Size file: " << size << ", Bad: " << bad << endl;
+		chrono::steady_clock::time_point stop = chrono::steady_clock::now();
 
 		file2.close();
 		file1.close();
+
+		save(size, bad, chrono::duration_cast<chrono::milliseconds>(stop - start));
 	}
 	catch(ifstream::failure error) {
-		cerr << "Błąd otwarcia pliku! " << error.what() << endl;
+		cerr << "Błąd odczytu pliku!" << endl;
 	}
 	
 	return 0;
@@ -88,4 +95,9 @@ uint count(unsigned char s, unsigned char d) {
 	}
 
 	return n;
+}
+
+void save(uint all, uint bad, chrono::milliseconds time) {
+	cout << "Ilośc porównanych bitów: " << all << endl << "Ilość różnych bitów: " << bad << endl;
+	cout << "BER: " << bad << '/' << all << endl << "Czas obliczeń: " << time.count() << "ms" << endl;
 }
