@@ -37,8 +37,8 @@ int main(int argc, const char* argv[])
 
 		cout << "Ilośc porównanych bitów: " << ber.size() << endl;
 		cout << "Ilość różnych bitów: " << ber.bad() << endl;
-		cout << "BER: " << ber.bad() << '/' << ber.size() << endl;
-		cout << "Czas obliczeń: " << duration_cast<milliseconds>(ber.time()).count() << "ms" << endl;
+		cout << "BER: " << ber.value() << endl;
+		cout << "Czas obliczeń: " << ber.time_milliseconds() << "ms" << endl;
 
 		// zapis informacji w pliku log.txt
 		if(!ber.save("log.txt"))

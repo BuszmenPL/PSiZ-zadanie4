@@ -16,6 +16,14 @@ BER::BER(std::istream& f, std::istream& s)
 	_time = stop - start;
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+double BER::time_milliseconds() {
+	return static_cast<double>(this->time().count()) / 1000000.0;
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+double BER::value() const {
+	return static_cast<double>(this->bad()) / static_cast<double>(this->size());
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool BER::save(std::string f) {
 	ofstream log;
 	log.exceptions(ofstream::failbit | ofstream::badbit);
@@ -23,8 +31,8 @@ bool BER::save(std::string f) {
 	try {
 		log.open(f, ios::app);
 
-		log << duration_cast<milliseconds>(this->_time).count() << ' ' << this->_size << ' ';
-		log << this->_bad << ' ' << this->_bad << '/' << this->_size << endl;
+		log << this->time_milliseconds() << "ms " << this->size() << ' ';
+		log << this->bad() << ' ' << this->value() << endl;
 
 		log.close();
 
