@@ -1,14 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-//#include <.h>
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 using namespace std;
-
+using namespace chrono;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 uint compair(std::istream&, std::istream&);
 uint count(unsigned char, unsigned char);
-void save(uint, uint, chrono::milliseconds);
-
+void save(uint, uint, std::chrono::milliseconds);
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int main(int argc, const char* argv[])
 {
 	if(argc != 3) {
@@ -48,16 +48,16 @@ int main(int argc, const char* argv[])
 		file1.seekg(0, ifstream::beg);
 		file2.seekg(0, ifstream::beg);
 
-		chrono::steady_clock::time_point start = chrono::steady_clock::now();
+		steady_clock::time_point start = steady_clock::now();
 
 		bad = compair(file1, file2);
 
-		chrono::steady_clock::time_point stop = chrono::steady_clock::now();
+		steady_clock::time_point stop = steady_clock::now();
 
 		file2.close();
 		file1.close();
 
-		save(size, bad, chrono::duration_cast<chrono::milliseconds>(stop - start));
+		save(size, bad, duration_cast<milliseconds>(stop - start));
 	}
 	catch(ifstream::failure error) {
 		cerr << "Błąd odczytu pliku!" << endl;
@@ -65,7 +65,7 @@ int main(int argc, const char* argv[])
 	
 	return 0;
 }
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 uint compair(std::istream& src, std::istream& dst) {
 	char s, d;
 	uint n{};
@@ -82,7 +82,7 @@ uint compair(std::istream& src, std::istream& dst) {
 
 	return n;
 }
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 uint count(unsigned char s, unsigned char d) {
 	uint n{};
 
@@ -96,8 +96,22 @@ uint count(unsigned char s, unsigned char d) {
 
 	return n;
 }
-
-void save(uint all, uint bad, chrono::milliseconds time) {
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void save(uint all, uint bad, std::chrono::milliseconds time) {
 	cout << "Ilośc porównanych bitów: " << all << endl << "Ilość różnych bitów: " << bad << endl;
 	cout << "BER: " << bad << '/' << all << endl << "Czas obliczeń: " << time.count() << "ms" << endl;
+
+	ofstream log;
+	log.exceptions(ofstream::failbit | ofstream::badbit);
+
+	try {
+		log.open("log.txt", ios::app);
+
+		log << time.count() << ' ' << all << ' ' << bad << ' ' << bad << '/' << all << endl;
+
+		log.close();
+	}
+	catch(ofstream::failure error) {
+		cerr << "Błąd zapisu do pliku log.txt" << endl;
+	}
 }
